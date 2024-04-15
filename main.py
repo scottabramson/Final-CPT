@@ -1,6 +1,6 @@
 import pygame, sys
 from button import Button
-import game
+from splashscreen import splashscreen
 
 pygame.init()
 
@@ -8,7 +8,7 @@ WIDTH = 1280
 HEIGHT = 720
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Menu")
-BGCOLOR = (0, 0, 0) # or any other background color you prefer
+BGCOLOR = (0, 0, 0)
 WHITE = (255, 255, 255)
 TITLE = "Made By Scott and Cooper"
 
@@ -26,36 +26,7 @@ for i in range(1, 23):  # Adjust the range based on your frame count
 current_frame = 0  # Start with the first frame
 frame_count = len(frames)  # Total number of frames
 
-class Game:
-    def __init__(self):
-        pygame.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption(TITLE)
-        # Any other initializations here
 
-    def draw_text(self, text, size, color, x, y):
-        font = pygame.font.Font(None, size)
-        text_surface = font.render(text, True, color)
-        text_rect = text_surface.get_rect()
-        text_rect.midtop = (x, y)
-        self.screen.blit(text_surface, text_rect)
-
-    def wait_for_key(self):
-        waiting = True
-        while waiting:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYUP:
-                    waiting = False
-    def show_start_screen(self): # game splash/start screen
-        self.screen.fill(BGCOLOR)
-        self.draw_text(TITLE, 48, WHITE, WIDTH / 2, HEIGHT / 4)
-        self.draw_text("We hope you enjoy.", 22, WHITE, WIDTH / 2, HEIGHT / 2)
-        self.draw_text("Press any key to play", 22, WHITE, WIDTH / 2, HEIGHT * 3 / 4)
-        pygame.display.flip()
-        self.wait_for_key()
 
 
 def get_font(size):  # Returns Press-Start-2P in the desired size
@@ -67,12 +38,12 @@ def play():
 
         SCREEN.fill("black")
 
-        PLAY_TEXT = get_font(45).render("This is the PLAY screen.", True, "White")
+        PLAY_TEXT = get_font(25).render("Use W A S D to move. Click any button to continue", True, "White")
         PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 260))
         SCREEN.blit(PLAY_TEXT, PLAY_RECT)
 
         PLAY_BACK = Button(image=None, pos=(640, 460),
-                           text_input="BACK", font=get_font(75), base_color="White", hovering_color="Green")
+                           text_input="BACK", font=get_font(50), base_color="White", hovering_color="Green")
 
         PLAY_BACK.changeColor(PLAY_MOUSE_POS)
         PLAY_BACK.update(SCREEN)
@@ -158,6 +129,6 @@ def main_menu():
 
         pygame.display.update()
 
-game_instance = Game()
+game_instance = splashscreen()
 game_instance.show_start_screen()
 main_menu()
