@@ -1,7 +1,7 @@
 import pygame, sys
 from button import Button
 import game
-cooper
+
 pygame.init()
 
 WIDTH = 1280
