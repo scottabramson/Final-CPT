@@ -1,24 +1,24 @@
-import pygame, sys
-from button import Button
-from splashscreen import splashscreen
+import pygame as pg
+import sys
+from settings import *
+from tilemap import *
+from os import path
+from button import *
+from splashscreen import *
+from game import *
+from tilemap import *
 
-pygame.init()
+pg.init()
 
-WIDTH = 1280
-HEIGHT = 720
-SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Menu")
-BGCOLOR = (0, 0, 0)
-WHITE = (255, 255, 255)
-TITLE = "Made By Scott and Cooper"
+
 
 # Background Animation
 frames = []
 for i in range(1, 23):  # Adjust the range based on your frame count
     # Load each frame image
-    frame = pygame.image.load(f"schoolbusgif/schoolbus{i}.jpg")
+    frame = pg.image.load(f"schoolbusgif/schoolbus{i}.jpg")
     # Scale the frame to fill the screen
-    scaled_frame = pygame.transform.scale(frame, (WIDTH, HEIGHT))
+    scaled_frame = pg.transform.scale(frame, (WIDTH, HEIGHT))
     # Append the scaled frame to the frames list
     frames.append(scaled_frame)
 
@@ -30,36 +30,20 @@ frame_count = len(frames)  # Total number of frames
 
 
 def get_font(size):  # Returns Press-Start-2P in the desired size
-    return pygame.font.Font("assets/font.ttf", size)
+    return pg.font.Font("assets/font.ttf", size)
 
 def play():
     while True:
-        PLAY_MOUSE_POS = pygame.mouse.get_pos()
+        PLAY_MOUSE_POS = pg.mouse.get_pos()
+        g = game()
+        while True:
+            g.new()
+            g.run()
+            g.show_go_screen()
 
-        SCREEN.fill("black")
-
-        PLAY_TEXT = get_font(25).render("Use W A S D to move. Click any button to continue", True, "White")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 260))
-        SCREEN.blit(PLAY_TEXT, PLAY_RECT)
-
-        PLAY_BACK = Button(image=None, pos=(640, 460),
-                           text_input="BACK", font=get_font(50), base_color="White", hovering_color="Green")
-
-        PLAY_BACK.changeColor(PLAY_MOUSE_POS)
-        PLAY_BACK.update(SCREEN)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if PLAY_BACK.checkForInput(PLAY_MOUSE_POS):
-                    main_menu()
-
-        pygame.display.update()
 def options():
     while True:
-        OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
+        OPTIONS_MOUSE_POS = pg.mouse.get_pos()
 
         SCREEN.fill("white")
 
@@ -73,32 +57,32 @@ def options():
         OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
         OPTIONS_BACK.update(SCREEN)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
                 sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pg.MOUSEBUTTONDOWN:
                 if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
                     main_menu()
 
-        pygame.display.update()
+        pg.display.update()
 def main_menu():
     print("Entered main menu")
     global current_frame
 
-    clock = pygame.time.Clock()
+    clock = pg.time.Clock()
     while True:
         SCREEN.blit(frames[current_frame], (0, 0))
-        MENU_MOUSE_POS = pygame.mouse.get_pos()
+        MENU_MOUSE_POS = pg.mouse.get_pos()
 
         MENU_TEXT = get_font(40).render("The Bell Doesn't Dismiss You!", True, "white")
         MENU_RECT = MENU_TEXT.get_rect(center=(640, 100))
 
-        PLAY_BUTTON = Button(image=pygame.image.load("menubuttons/Play Rect.png"), pos=(640, 250),
+        PLAY_BUTTON = Button(image=pg.image.load("menubuttons/Play Rect.png"), pos=(640, 250),
                              text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-        OPTIONS_BUTTON = Button(image=pygame.image.load("menubuttons/Options Rect.png"), pos=(640, 400),
+        OPTIONS_BUTTON = Button(image=pg.image.load("menubuttons/Options Rect.png"), pos=(640, 400),
                                 text_input="OPTIONS", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-        QUIT_BUTTON = Button(image=pygame.image.load("menubuttons/Quit Rect.png"), pos=(640, 550),
+        QUIT_BUTTON = Button(image=pg.image.load("menubuttons/Quit Rect.png"), pos=(640, 550),
                              text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
 
         SCREEN.blit(MENU_TEXT, MENU_RECT)
@@ -107,18 +91,18 @@ def main_menu():
             button.changeColor(MENU_MOUSE_POS)
             button.update(SCREEN)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
                 sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pg.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
                     play()
 
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
                     options()
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    pygame.quit()
+                    pg.quit()
                     sys.exit()
 
         # Update the frame index for the next loop iteration
@@ -127,8 +111,8 @@ def main_menu():
         # Control the frame rate
         clock.tick(10)
 
-        pygame.display.update()
+        pg.display.update()
 
-game_instance = splashscreen()
-game_instance.show_start_screen()
+splash = splashscreen()
+splash.show_start_screen()
 main_menu()
