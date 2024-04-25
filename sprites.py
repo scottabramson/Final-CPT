@@ -5,6 +5,8 @@ from tilemap import *
 from random import uniform, choice
 vec = pg.math.Vector2
 
+
+#COLLISIONS
 def collide_with_walls(sprite, group, dir):
     if dir == 'x':
         hits = pg.sprite.spritecollide(sprite, group, False, collide_hit_rect)
@@ -24,12 +26,10 @@ def collide_with_walls(sprite, group, dir):
                 sprite.pos.y = hits[0].rect.bottom + sprite.hit_rect.height / 2
             sprite.vel.y = 0
             sprite.hit_rect.centery = sprite.pos.y
-
 def check_collisions(player, obstacles):
     for obstacle in obstacles:
         if player.hit_rect.colliderect(obstacle.rect):
             handle_collision(player, obstacle)
-
 def handle_collision(player, obstacle):
     # Example: Stop the player's movement
     player.vel.x = 0
@@ -39,13 +39,15 @@ def handle_collision(player, obstacle):
         player.hit_rect.right = obstacle.rect.left
     else:
         player.hit_rect.left = obstacle.rect.right
+
+
+
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites
         pg.sprite.Sprite.__init__(self, self.groups)
         self.game = game
         original_image = pg.image.load("img/manBlue_gun.png").convert_alpha()
-        # Scale the image to make the sprite visually smaller
         self.image = pg.transform.scale(original_image,
                                         (int(original_image.get_width() * 0.1), int(original_image.get_height() * 0.1)))
         self.rect = self.image.get_rect()
@@ -53,35 +55,40 @@ class Player(pg.sprite.Sprite):
         self.hit_rect.center = self.rect.center
         self.vel = vec(0, 0)
         self.pos = vec(x, y)
-        self.rot = 0
+        self.rot = 0  # Rotation is not used for directional movement but keeping it if needed elsewhere
         self.last_shot = 0
         self.health = PLAYER_HEALTH
 
-
     def get_keys(self):
-        self.rot_speed = 0
         self.vel = vec(0, 0)
         keys = pg.key.get_pressed()
+
         if keys[pg.K_LEFT] or keys[pg.K_a]:
-            self.rot_speed = PLAYER_ROT_SPEED
+            self.vel.x = -PLAYER_SPEED
         if keys[pg.K_RIGHT] or keys[pg.K_d]:
-            self.rot_speed = -PLAYER_ROT_SPEED
+            self.vel.x = PLAYER_SPEED
         if keys[pg.K_UP] or keys[pg.K_w]:
-            self.vel = vec(PLAYER_SPEED, 0).rotate(-self.rot)
+            self.vel.y = -PLAYER_SPEED
         if keys[pg.K_DOWN] or keys[pg.K_s]:
-            self.vel = vec(-PLAYER_SPEED / 2, 0).rotate(-self.rot)
+            self.vel.y = PLAYER_SPEED
+
+        # Normalize the velocity to keep consistent speed in diagonal movement
+        if self.vel.length() > 0:
+            self.vel = self.vel.normalize() * PLAYER_SPEED
+
+        # Shooting mechanics, similar to previous implementation
         if keys[pg.K_SPACE]:
             now = pg.time.get_ticks()
             if now - self.last_shot > BULLET_RATE:
                 self.last_shot = now
-                dir = vec(1, 0).rotate(-self.rot)
-                pos = self.pos + BARREL_OFFSET.rotate(-self.rot)
-                Bullet(self.game, pos, dir)
-                self.vel = vec(-KICKBACK, 0).rotate(-self.rot)
+                bullet_dir = vec(1, 0)  # Direction might need to be adjusted
+                bullet_pos = self.pos + BARREL_OFFSET  # Offset might need to be adjusted
+                Bullet(self.game, bullet_pos, bullet_dir)
+                self.vel += vec(-KICKBACK, 0)  # Kickback can be adjusted
 
     def update(self):
         self.get_keys()
-        self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
+        #self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
@@ -185,8 +192,6 @@ class Mob(pg.sprite.Sprite):
         collide_with_walls(self, self.game.walls, 'x')
         self.pos.y += self.vel.y * self.game.dt
         collide_with_walls(self, self.game.walls, 'y')
-        self.pos += self.vel * self.game.dt
-        self.rect.center = self.pos
 
     def draw_health(self):
         if self.health > 60:
@@ -245,3 +250,12 @@ class Obstacle(pg.sprite.Sprite):
         self.y = y
         self.rect.x = x
         self.rect.y = y
+
+
+class FinishTrigger(pg.sprite.Sprite):
+    def __init__(self, game, x, y, w, h):
+        self.groups = game.all_sprites, game.finish_triggers
+        pg.sprite.Sprite.__init__(self, self.groups)
+        self.image = pg.Surface((w, h), pg.SRCALPHA)  # SRCALPHA makes it transparent
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.game = game
