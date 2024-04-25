@@ -34,6 +34,7 @@ class Game:
         pg.display.set_caption(TITLE)
         self.clock = pg.time.Clock()
         self.load_data()
+        self.finish_triggers = pg.sprite.Group()
 
     def load_data(self):
         game_folder = path.dirname(__file__)
@@ -54,14 +55,7 @@ class Game:
         self.walls = pg.sprite.Group()
         self.mobs = pg.sprite.Group()
         self.bullets = pg.sprite.Group()
-        # for row, tiles in enumerate(self.map.data):
-        #     for col, tile in enumerate(tiles):
-        #         if tile == '1':
-        #             Wall(self, col, row)
-        #         if tile == 'M':
-        #             Mob(self, col, row)
-        #         if tile == 'P':
-        #             self.player = Player(self, col, row)
+
         for tile_object in self.map.tmxdata.objects:
             if tile_object.name == 'player':
                 self.player = Player(self, tile_object.x, tile_object.y)
@@ -70,8 +64,11 @@ class Game:
             if tile_object.name == 'wall':
                 Obstacle(self, tile_object.x, tile_object.y,
                          tile_object.width, tile_object.height)
+            if tile_object.name == 'finish':
+                FinishTrigger(self, tile_object.x, tile_object.y, tile_object.width, tile_object.height)
         self.camera = Camera(self.map.width, self.map.height)
         self.draw_debug = False
+
 
     def run(self):
         # game loop - set self.playing = False to end the game
@@ -104,6 +101,26 @@ class Game:
         for hit in hits:
             hit.health -= BULLET_DAMAGE
             hit.vel = vec(0, 0)
+        if pg.sprite.spritecollide(self.player, self.finish_triggers, False):
+            self.handle_level_complete()
+
+    def handle_level_complete(self):
+        # Fill the screen with black
+        self.screen.fill((0, 0, 0))
+
+        # Display the level completion message
+        font = pg.font.Font(None, 74)
+        text = font.render("You finished level 1", True, (255, 255, 255))
+        text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        self.screen.blit(text, text_rect)
+        print("Level complete!")  # Placeholder for your level completion logic
+
+        # Update the display
+        pg.display.flip()
+
+        # Wait for a moment before proceeding
+        pg.time.wait(2000)
+
 
     def draw_grid(self):
         for x in range(0, WIDTH, TILESIZE):
@@ -117,6 +134,8 @@ class Game:
         self.screen.blit(self.map_img, self.camera.apply_rect(self.map_rect))
         # self.draw_grid()
         for sprite in self.all_sprites:
+            if not isinstance(sprite, FinishTrigger):  # Only draw if it's not a FinishTrigger
+                self.screen.blit(sprite.image, self.camera.apply(sprite))
             if isinstance(sprite, Mob):
                 sprite.draw_health()
             self.screen.blit(sprite.image, self.camera.apply(sprite))
