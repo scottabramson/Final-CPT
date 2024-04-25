@@ -33,13 +33,13 @@ def get_font(size):  # Returns Press-Start-2P in the desired size
     return pg.font.Font("assets/font.ttf", size)
 
 def play():
-    while True:
+    while True:  # This infinite loop will prevent `play` from ever returning
         PLAY_MOUSE_POS = pg.mouse.get_pos()
-        g = game()
-        while True:
-            g.new()
-            g.run()
-            g.show_go_screen()
+        g = Game()
+        g.new()
+        g.run()
+        g.show_go_screen()
+
 
 def options():
     while True:
