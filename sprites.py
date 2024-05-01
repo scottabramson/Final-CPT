@@ -3,7 +3,9 @@ import pygame as pg
 from settings import *
 from tilemap import *
 from random import uniform, choice
+from test import *
 vec = pg.math.Vector2
+
 
 
 #COLLISIONS
@@ -42,6 +44,9 @@ def handle_collision(player, obstacle):
 
 
 
+
+
+
 class Player(pg.sprite.Sprite):
     def __init__(self, game, x, y):
         self.groups = game.all_sprites
@@ -56,6 +61,7 @@ class Player(pg.sprite.Sprite):
         self.vel = vec(0, 0)
         self.pos = vec(x, y)
         self.rot = 0  # Rotation is not used for directional movement but keeping it if needed elsewhere
+        self.rot_speed = 0
         self.last_shot = 0
         self.health = PLAYER_HEALTH
 
@@ -88,7 +94,7 @@ class Player(pg.sprite.Sprite):
 
     def update(self):
         self.get_keys()
-        #self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
+        self.rot = (self.rot + self.rot_speed * self.game.dt) % 360
         self.image = pg.transform.rotate(self.game.player_img, self.rot)
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
