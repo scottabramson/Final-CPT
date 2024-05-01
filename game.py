@@ -39,13 +39,16 @@ class Game:
     def load_data(self):
         game_folder = path.dirname(__file__)
         img_folder = path.join(game_folder, 'img')
+        #animations_folder = path.join(game_folder, 'animations')
         map_folder = path.join(game_folder, 'maps')
         self.map = TiledMap(path.join(map_folder, 'level1.tmx'))
         self.map_img = self.map.make_map()
         self.map_rect = self.map_img.get_rect()
-        self.player_img = pg.image.load(path.join(img_folder, PLAYER_IMG)).convert_alpha()
+        self.player_img = pg.image.load('img/manBlue_gun.png').convert_alpha()
+        #self.player_img = pg.image.load(path.join(animations_folder, 'idle.png')).convert_alpha()
         self.bullet_img = pg.image.load(path.join(img_folder, BULLET_IMG)).convert_alpha()
         self.mob_img = pg.image.load(path.join(img_folder, MOB_IMG)).convert_alpha()
+
         #self.wall_img = pg.image.load(path.join(img_folder, WALL_IMG)).convert_alpha()
         #self.wall_img = pg.transform.scale(self.wall_img, (TILESIZE, TILESIZE))
 
