@@ -1,4 +1,5 @@
 import pygame as pg
+from test import AnimationSprite
 vec = pg.math.Vector2
 
 
@@ -26,13 +27,12 @@ TILESIZE = 64
 GRIDWIDTH = WIDTH / TILESIZE
 GRIDHEIGHT = HEIGHT / TILESIZE
 
-WALL_IMG = 'tileGreen_39.png'
+#WALL_IMG = 'tileGreen_39.png'
 
 # Player settings
 PLAYER_HEALTH = 100
 PLAYER_SPEED = 150
 PLAYER_ROT_SPEED = 200
-PLAYER_IMG = 'manBlue_gun.png'
 PLAYER_HIT_RECT = pg.Rect(0, 0, 35, 35)
 BARREL_OFFSET = vec(30, 10)
 
