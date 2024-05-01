@@ -1,137 +1,113 @@
-from pygame_functions import *
+import pygame
+from settings import *
+
+# Initialize Pygame
+pygame.init()
 
 
+# Clock for controlling frame rate
+clock = pygame.time.Clock()
+
+# Load the sprite sheets
+sprite_sheet = pygame.image.load('animations/throw.png').convert_alpha()
+sprite_sheet_run = pygame.image.load('animations/run.png').convert_alpha()
+sprite_sheet_idle = pygame.image.load('animations/idle.png').convert_alpha()  # Load idle sprites
+
+frame_width = 48  # Width of each frame in the sprite sheet
+frame_height = 73  # Height of each frame in the sprite sheet
+
+# Slicing sprite sheets into frames
+throwsprite_images = [sprite_sheet.subsurface(pygame.Rect(i * frame_width, 0, frame_width, frame_height))
+                      for i in range(24)]  # 24 frames, assuming all throws are in one row
+
+runsprite_images = [sprite_sheet_run.subsurface(pygame.Rect(i * frame_width, 0, frame_width, frame_height))
+                    for i in range(24)]  # 24 frames for running, assuming each direction has 6 frames
+
+idlesprite_images = [sprite_sheet_idle.subsurface(pygame.Rect(i * frame_width, 0, frame_width, frame_height))
+                     for i in range(24)]  # 4 idle frames, one for each direction
+
+current_image = throwsprite_images[0]
+
+# Animation frames by direction
+direction_frames = {'d': 0, 'w': 6, 'a': 12, 's': 18}
 
 
-screenSize(600,600)
-setBackgroundColour("black")
-runsprite  = makeSprite("animations/run.png", 24)  # links.gif contains 32 separate frames of animation.
-idlesprite  = makeSprite("animations/idle.png", 24)  # links.gif contains 32 separate frames of animation.
-throwsprite  = makeSprite("animations/throw.png", 24)
+def changeSpriteImage(sprite, frame):
+    global current_image
+    current_image = sprite[frame]
 
-
-def animation():
-
-    global current_sprite  # Declare current_sprite as global to modify it within the function
-    moveSprite(current_sprite, 300, 300, True)
-    showSprite(current_sprite)
-
-def run_animation():
-    moveSprite(runsprite, 300, 300, True)
-    showSprite(runsprite)
-
-def idle_animation():
-    moveSprite(idlesprite, 300, 300, True)
-    showSprite(idlesprite)
-
-def throw_animation():
-    moveSprite(throwsprite, 300, 300, True)
-    showSprite(throwsprite)
-
-def run_loop():
-    nextFrame = clock()
-    frame = 0
-    direction = None
-    running = False  # Flag to indicate if the sprite is currently running
-
-    while True:
-        run_animation()  # Call the run animation function
-
-        if clock() > nextFrame:
-            if running:  # Only update if the sprite is running
-                frame = (frame + 1) % 6
-                nextFrame += 100  # Update time for next frame
-                changeSpriteImage(runsprite, direction * 6 + frame)
-
-        if keyPressed('d') or keyPressed('s') or keyPressed('a') or keyPressed('w'):
-            if not running:
-                direction = 0 if keyPressed('d') else \
-                            3 if keyPressed('s') else \
-                            2 if keyPressed('a') else \
-                            1 if keyPressed('w') else None
-                running = True
-                nextFrame = clock()  # Reset the frame timer
-        else:
-            running = False
-
-        tick(120)
-
-    endWait()
-
-def idle_loop():  # This function loops the animation continuously with the last direction pressed
-    nextFrame = clock()
-    frame = 0
-    direction = None  # Initialize direction to None
-    last_direction = 0  # Default to 0 (facing right) or another default direction
-
-    while True:
-        if keyPressed('d'):
-            last_direction = 0  # Right
-        elif keyPressed('a'):
-            last_direction = 2  # Left
-        elif keyPressed('w'):
-            last_direction = 1  # Up
-        elif keyPressed('s'):
-            last_direction = 3  # Down
-
-        # Decide which sprite to display based on the last key pressed
-        if any([keyPressed('d'), keyPressed('a'), keyPressed('w'), keyPressed('s')]):
-            direction = last_direction  # Update direction if any key is pressed
-        else:
-            direction = last_direction  # Keep the last direction active
-
-        # Show idle animation and update frames
-        idle_animation()  # Ensure this function does not interfere with the direction logic
-
-        # Update frame and animation based on direction
-        if clock() > nextFrame:
-            frame = (frame + 1) % 6  # Assuming 6 frames per direction
-            nextFrame += 100  # Update every 100 milliseconds
-            changeSpriteImage(idlesprite, direction * 6 + frame)  # Apply correct frame
-
-        tick(120)  # Limit to 120 ticks per second
-
-    endWait()  # Keep the window open until a close event is triggered
 
 def throw_loop():
-    nextFrame = clock()
-    frame = 0
-    direction = None
-    running = False  # Flag to indicate if the sprite is currently running
+    frame_run = 0
+    frame_throw = 0
+    frame_idle = 0  # Initialize idle frame count
+    direction = 's'
+    last_direction = 's'  # Initially set to 's', will update as the player moves
+    running = False
+    throwing = False
+    key_list = []
 
     while True:
-        throw_animation()  # Call the run animation function
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
 
-        # Check if it's time to update the sprite image
-        if clock() > nextFrame:
-            if running:  # Only update if the sprite is running
-                frame = (frame + 1) % 6  # Use %7 if you have 7 frames per direction
-                nextFrame += 100  # Update time for next frame
+            if event.type == pygame.KEYDOWN:
+                if event.key in (pygame.K_d, pygame.K_w, pygame.K_a, pygame.K_s):
+                    if chr(event.key) not in key_list:
+                        key_list.append(chr(event.key))
+                    direction = key_list[-1]
+                    last_direction = direction  # Update last_direction whenever direction changes
+                    running = True
+                if event.key == pygame.K_SPACE and not throwing:
+                    throwing = True
+                    frame_throw = 0  # Reset frame for throw animation
 
-                # Update sprite image based on current direction
-                changeSpriteImage(throwsprite, direction * 6 + frame)
+            if event.type == pygame.KEYUP:
+                if event.key in (pygame.K_d, pygame.K_w, pygame.K_a, pygame.K_s):
+                    if chr(event.key) in key_list:
+                        key_list.remove(chr(event.key))
+                    if key_list:
+                        direction = key_list[-1]
+                        last_direction = direction  # Update last_direction on key release
+                    else:
+                        running = False
+                        frame_run = 0  # Reset frame when stopping
+                        last_direction = direction  # Ensure last_direction holds the stopped direction
 
-        # Check for key presses and releases to update the running state
-        if keyPressed("d") or keyPressed("s") or keyPressed("a") or keyPressed("w"):
-            if not running:  # If not already running, start the animation
-                direction = 0 if keyPressed("d") else \
-                            3 if keyPressed("s") else \
-                            2 if keyPressed("a") else \
-                            1 if keyPressed("w") else None
-                running = True
-                nextFrame = clock()  # Reset the frame timer
+        # Determine which animation to play
+        if throwing:
+            if frame_throw < 6:  # Assuming 6 frames per direction for throwing
+                sprite_index = direction_frames[direction] + frame_throw
+                if sprite_index < len(throwsprite_images):
+                    changeSpriteImage(throwsprite_images, sprite_index)
+                frame_throw += 1
+            else:
+                throwing = False
+                frame_throw = 0  # Reset frame count after animation completes
+
+        elif running:
+            run_frame_count = 6  # Each direction has 6 frames
+            sprite_index = direction_frames[direction] + (frame_run % run_frame_count)
+            changeSpriteImage(runsprite_images, sprite_index)
+            frame_run += 1
+
         else:
-            # If no direction keys are pressed, stop the animation
-            running = False
+            # Play idle animation when not running or throwing
+            idle_frame_count = 6  # Correct number of frames per direction
+            if last_direction in direction_frames:
+                base_index = direction_frames[last_direction]  # Base index depending on the direction
+                sprite_index = base_index + (frame_idle % idle_frame_count)
+            else:
+                sprite_index = frame_idle % idle_frame_count  # Fallback to a default if direction is undefined
+            changeSpriteImage(idlesprite_images, sprite_index)
+            frame_idle += 1
 
-        tick(120)
+        # Update screen
+        SCREEN.fill((0, 0, 0))
+        SCREEN.blit(current_image, (375, 275))
+        pygame.display.flip()
+        clock.tick(10)
 
-    endWait()
-
-
-
-
-
-# Call loop() to start the loop
 throw_loop()
-
